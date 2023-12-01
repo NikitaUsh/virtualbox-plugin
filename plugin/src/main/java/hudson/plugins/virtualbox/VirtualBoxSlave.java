@@ -1,16 +1,16 @@
 package hudson.plugins.virtualbox;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Slave;
 import hudson.slaves.ComputerLauncher;
-import hudson.slaves.NodeProperty;
-import hudson.slaves.RetentionStrategy;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import java.io.IOException;
-import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -21,152 +21,153 @@ import org.kohsuke.stapler.QueryParameter;
  * @author Evgeny Mandrikov
  */
 public class VirtualBoxSlave extends Slave {
-  private static final Logger LOG = Logger.getLogger(VirtualBoxSlave.class.getName());
+    private static final Logger LOG = Logger.getLogger(VirtualBoxSlave.class.getName());
 
-  private final String hostName;
-  private final String virtualMachineName;
-  private final String virtualMachineType;
-  private final String virtualMachineStopMode;
+    private final String hostName;
+    private final String virtualMachineName;
+    private final String virtualMachineType;
+    private final String virtualMachineStopMode;
 
-  @DataBoundConstructor
-  public VirtualBoxSlave(
-      String name, String nodeDescription, String remoteFS, String numExecutors, Mode mode, String labelString,
-      ComputerLauncher delegateLauncher, RetentionStrategy retentionStrategy, List<? extends NodeProperty<?>> nodeProperties,
-      String hostName, String virtualMachineName, String virtualMachineType, String virtualMachineStopMode
-  ) throws Descriptor.FormException, IOException {
-    super(
-        name,
-        nodeDescription,
-        remoteFS,
-        numExecutors,
-        mode,
-        labelString,
-        new VirtualBoxComputerLauncher(delegateLauncher, hostName, virtualMachineName, virtualMachineType, virtualMachineStopMode),
-        retentionStrategy,
-        nodeProperties
-    );
-    this.hostName = hostName;
-    this.virtualMachineName = virtualMachineName;
-    this.virtualMachineType = virtualMachineType;
-    this.virtualMachineStopMode = virtualMachineStopMode;
-  }
+    @DataBoundConstructor
+    public VirtualBoxSlave(
+            @NonNull String name,
+            String remoteFS,
+            ComputerLauncher delegateLauncher,
+            String hostName,
+            String virtualMachineName,
+            String virtualMachineType,
+            String virtualMachineStopMode)
+            throws Descriptor.FormException, IOException {
+        super(
+                name,
+                remoteFS,
+                new VirtualBoxComputerLauncher(
+                        delegateLauncher, hostName, virtualMachineName, virtualMachineType, virtualMachineStopMode));
+        this.hostName = hostName;
+        this.virtualMachineName = virtualMachineName;
+        this.virtualMachineType = virtualMachineType;
+        this.virtualMachineStopMode = virtualMachineStopMode;
+    }
 
-  public VirtualBoxSlave(
-      String name, String nodeDescription, String remoteFS, String numExecutors, Mode mode, String labelString,
-      ComputerLauncher delegateLauncher, RetentionStrategy retentionStrategy, List<? extends NodeProperty<?>> nodeProperties,
-      String hostName, String virtualMachineName, String virtualMachineType
-  ) throws Descriptor.FormException, IOException {
-    this(
-        name,
-        nodeDescription,
-        remoteFS,
-        numExecutors,
-        mode,
-        labelString,
-        delegateLauncher,
-        retentionStrategy,
-        nodeProperties,
-        hostName,
-        virtualMachineName,
-        virtualMachineType,
-        "pause");
-  }
-
-  @Override
-  public Computer createComputer() {
-    return new VirtualBoxComputer(this);
-  }
-
-  /**
-   * @return host name
-   */
-  public String getHostName() {
-    return hostName;
-  }
-
-  /**
-   * @return virtual machine name
-   */
-  public String getVirtualMachineName() {
-    return virtualMachineName;
-  }
-
-  /**
-   * @return type of virtual machine, can be headless, vrdp, gui, or sdl
-   */
-  public String getVirtualMachineType() {
-    return virtualMachineType;
-  }
-
-  /**
-   * @return type of stop mode for virtual machine, can be powerdown or pause
-   */
-  public String getVirtualMachineStopMode() {
-    return virtualMachineStopMode;
-  }
-
-  @Override
-  public VirtualBoxComputerLauncher getLauncher() {
-    return (VirtualBoxComputerLauncher) super.getLauncher();
-  }
-
-  /**
-   * For UI.
-   *
-   * @return original launcher
-   */
-  public ComputerLauncher getDelegateLauncher() {
-    return getLauncher().getCore();
-  }
-
-  @Extension
-  public static final class DescriptorImpl extends SlaveDescriptor {
     @Override
-    public String getDisplayName() {
-      return Messages.VirtualBoxSlave_displayName();
+    public Computer createComputer() {
+        return new VirtualBoxComputer(this);
+    }
+
+    /**
+     * @return host name
+     */
+    public String getHostName() {
+        return hostName;
+    }
+
+    /**
+     * @return virtual machine name
+     */
+    public String getVirtualMachineName() {
+        return virtualMachineName;
+    }
+
+    /**
+     * @return type of virtual machine, can be headless, vrdp, gui, or sdl
+     */
+    public String getVirtualMachineType() {
+        return virtualMachineType;
+    }
+
+    /**
+     * @return type of stop mode for virtual machine, can be powerdown or pause
+     */
+    public String getVirtualMachineStopMode() {
+        return virtualMachineStopMode;
+    }
+
+    @Override
+    public VirtualBoxComputerLauncher getLauncher() {
+        return (VirtualBoxComputerLauncher) super.getLauncher();
     }
 
     /**
      * For UI.
      *
-     * @see VirtualBoxPlugin#getHost(String)
+     * @return original launcher
      */
-    public List<VirtualBoxMachine> getDefinedVirtualMachines(String hostName) {
-      return VirtualBoxPlugin.getDefinedVirtualMachines(hostName);
+    public ComputerLauncher getDelegateLauncher() {
+        return getLauncher().getCore();
     }
 
-    /**
-     * For UI.
-     *
-     * @see VirtualBoxPlugin#getHosts()
-     */
-    public List<VirtualBoxCloud> getHosts() {
-      return VirtualBoxPlugin.getHosts();
-    }
+    @Extension
+    public static final class DescriptorImpl extends SlaveDescriptor {
+        @NonNull
+        @Override
+        public String getDisplayName() {
+            return Messages.VirtualBoxSlave_displayName();
+        }
 
-    /**
-     * For UI.
-     * TODO Godin: doesn't work
-     */
-    public FormValidation doCheckHostName(@QueryParameter String value) {
-      LOG.info("Perform on the fly check - hostName");
-      if (Util.fixEmptyAndTrim(value) == null) {
-        return FormValidation.error("VirtualBox Host is mandatory");
-      }
-      return FormValidation.ok();
-    }
+        /**
+         * For UI.
+         *
+         * @see VirtualBoxPlugin#getHosts()
+         * @return A list of defined VB cloud hosts
+         */
+        public ListBoxModel doFillHostNameItems() {
+            ListBoxModel m = new ListBoxModel();
+            m.add(Messages.VirtualBoxSlave_defaultHost());
+            for (VirtualBoxCloud vc : VirtualBoxPlugin.getHosts()) {
+                m.add(vc.getDisplayName());
+            }
+            return m;
+        }
 
-    /**
-     * For UI.
-     * TODO Godin: doesn't work
-     */
-    public FormValidation doCheckVirtualMachineName(@QueryParameter String value) {
-      LOG.info("Perform on the fly check - virtualMachineName");
-      if (Util.fixEmptyAndTrim(value) == null) {
-        return FormValidation.error("Virtual Machine Name is mandatory");
-      }
-      return FormValidation.ok();
-    }
-  }
+        /**
+         * For UI.
+         * @param hostName The name of the host to be validated.
+         * @return FormValidation for error or ok
+         */
+        public FormValidation doCheckHostName(@QueryParameter String hostName) {
+            LOG.log(Level.INFO, "Check host name as " + hostName);
+            if (hostName == null
+                    || hostName.isEmpty()
+                    || Messages.VirtualBoxSlave_defaultHost().equals(hostName)) {
+                LOG.log(Level.INFO, "mandatory host name as " + hostName);
+                return FormValidation.error("VirtualBox Host is mandatory!");
+            } else {
+                return FormValidation.ok();
+            }
+        }
 
+        /**
+         * For UI.
+         *
+         * @see VirtualBoxPlugin#getDefinedVirtualMachines(String)
+         * @param hostName VirtualBox cloud name
+         * @return A list of defined VirtualBoxMachines
+         */
+        public ListBoxModel doFillVirtualMachineNameItems(@QueryParameter String hostName) {
+            if (hostName == null || Messages.VirtualBoxSlave_defaultHost().equals(hostName)) {
+                LOG.log(Level.INFO, "Default host name selected - returning null virtual machine list");
+                return null;
+            }
+            LOG.log(Level.INFO, "Host name set as " + hostName);
+            ListBoxModel m = new ListBoxModel();
+            for (VirtualBoxMachine vm : VirtualBoxPlugin.getDefinedVirtualMachines(hostName)) {
+                m.add(vm.getName());
+            }
+            return m;
+        }
+
+        /**
+         * For UI.
+         * @param virtualMachineName The name of the virtual machine to be validated.
+         * @return FormValidation for error or ok
+         */
+        public FormValidation doCheckVirtualMachineName(@QueryParameter String virtualMachineName) {
+            LOG.log(Level.INFO, "Check VM name as " + virtualMachineName);
+            if (Util.fixEmptyAndTrim(virtualMachineName) == null) {
+                return FormValidation.error("Virtual Machine Name is mandatory!");
+            } else {
+                return FormValidation.ok();
+            }
+        }
+    }
 }

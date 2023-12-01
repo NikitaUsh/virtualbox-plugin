@@ -2,23 +2,22 @@ package hudson.plugins.virtualbox;
 
 import hudson.util.Secret;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import org.virtualbox_4_3.*;
+import org.virtualbox_7_0.*;
 
-/**
- * @author Mihai Serban
- */
-public final class VirtualBoxControlV43 implements VirtualBoxControl {
+public final class VirtualBoxControlV70 implements VirtualBoxControl {
 
     private final VirtualBoxManager manager;
     private final IVirtualBox vbox;
 
-    public VirtualBoxControlV43(String hostUrl, String userName, Secret password) {
+    public VirtualBoxControlV70(String hostUrl, String userName, Secret password) {
         manager = VirtualBoxManager.createInstance(null);
         manager.connect(hostUrl, userName, password.getPlainText());
         vbox = manager.getVBox();
     }
 
+    @Override
     public synchronized void disconnect() {
         try {
             manager.disconnect();
@@ -26,6 +25,7 @@ public final class VirtualBoxControlV43 implements VirtualBoxControl {
         }
     }
 
+    @Override
     public synchronized boolean isConnected() {
         try {
             vbox.getVersion();
@@ -41,6 +41,7 @@ public final class VirtualBoxControlV43 implements VirtualBoxControl {
      * @param host VirtualBox host
      * @return list of virtual machines installed on specified host
      */
+    @Override
     public synchronized List<VirtualBoxMachine> getMachines(VirtualBoxCloud host, VirtualBoxLogger log) {
         List<VirtualBoxMachine> result = new ArrayList<VirtualBoxMachine>();
         for (IMachine machine : vbox.getMachines()) {
@@ -57,6 +58,7 @@ public final class VirtualBoxControlV43 implements VirtualBoxControl {
      * @param log
      * @return result code
      */
+    @Override
     public synchronized long startVm(VirtualBoxMachine vbMachine, String type, VirtualBoxLogger log) {
         IMachine machine = vbox.findMachine(vbMachine.getName());
         if (null == machine) {
@@ -128,8 +130,7 @@ public final class VirtualBoxControlV43 implements VirtualBoxControl {
 
         // powerUp from Saved, Aborted or PoweredOff states
         session = getSession(null);
-        String env = "";
-        progress = machine.launchVMProcess(session, type, env);
+        progress = machine.launchVMProcess(session, type, Collections.<String>emptyList());
         progress.waitForCompletion(-1);
         long result = progress.getResultCode();
         releaseSession(session, machine);
@@ -150,6 +151,7 @@ public final class VirtualBoxControlV43 implements VirtualBoxControl {
      * @param log
      * @return result code
      */
+    @Override
     public synchronized long stopVm(VirtualBoxMachine vbMachine, String stopMode, VirtualBoxLogger log) {
         IMachine machine = vbox.findMachine(vbMachine.getName());
         if (null == machine) {
@@ -192,7 +194,7 @@ public final class VirtualBoxControlV43 implements VirtualBoxControl {
             progress = session.getConsole().powerDown();
         } else {
             // Running or Paused
-            progress = session.getConsole().saveState();
+            progress = session.getMachine().saveState();
         }
 
         progress.waitForCompletion(-1);

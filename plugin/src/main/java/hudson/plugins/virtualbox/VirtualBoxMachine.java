@@ -1,6 +1,6 @@
 package hudson.plugins.virtualbox;
 
-import java.io.Serializable;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -8,58 +8,49 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class VirtualBoxMachine implements Comparable<VirtualBoxMachine> {
 
-  private final VirtualBoxCloud host;
-  private final String name;
+    private final VirtualBoxCloud host;
+    private final String name;
 
-  @DataBoundConstructor
-  public VirtualBoxMachine(VirtualBoxCloud host, String name) {
-    this.host = host;
-    this.name = name;
-  }
-
-  public VirtualBoxCloud getHost() {
-    return host;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
+    @DataBoundConstructor
+    public VirtualBoxMachine(VirtualBoxCloud host, String name) {
+        this.host = host;
+        this.name = name;
     }
-    if (!(obj instanceof VirtualBoxMachine)) {
-      return false;
-    }
-    VirtualBoxMachine that = (VirtualBoxMachine) obj;
-    if (host != null ? !host.equals(that.host) : that.host != null) {
-      return false;
-    }
-    if (name != null ? !name.equals(that.name) : that.name != null) {
-      return false;
-    }
-    return true;
-  }
 
-  @Override
-  public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    return 31 * result + (host != null ? host.hashCode() : 0);
-  }
+    public VirtualBoxCloud getHost() {
+        return host;
+    }
 
-  public int compareTo(VirtualBoxMachine obj) {
-    // TODO Godin compare host ? check on null?
-    return name.compareTo(obj.getName());
-  }
+    public String getName() {
+        return name;
+    }
 
-  @Override
-  public String toString() {
-    return new StringBuffer()
-        .append("VirtualBoxMachine{")
-        .append("host=").append(host).append(",")
-        .append("name='").append(name).append("'")
-        .append("}").toString();
-  }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        VirtualBoxMachine that = (VirtualBoxMachine) o;
+
+        if (host != null ? !host.equals(that.host) : that.host != null) return false;
+        return name != null ? name.equals(that.name) : that.name == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = host != null ? host.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public int compareTo(@NonNull VirtualBoxMachine obj) {
+        // TODO Godin compare host ? check on null?
+        return name.compareTo(obj.getName());
+    }
+
+    @Override
+    public String toString() {
+        return "VirtualBoxMachine{" + "host=" + host + ", name='" + name + '\'' + '}';
+    }
 }

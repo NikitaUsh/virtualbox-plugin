@@ -1,14 +1,12 @@
 package hudson.plugins.virtualbox;
 
 import hudson.util.Secret;
-import org.virtualbox_6_1.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.virtualbox_6_1.*;
 
 public final class VirtualBoxControlV61 implements VirtualBoxControl {
-
     private final VirtualBoxManager manager;
     private final IVirtualBox vbox;
 
@@ -18,12 +16,15 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
         vbox = manager.getVBox();
     }
 
+    @Override
     public synchronized void disconnect() {
         try {
             manager.disconnect();
-        } catch (VBoxException e) {}
+        } catch (VBoxException e) {
+        }
     }
 
+    @Override
     public synchronized boolean isConnected() {
         try {
             vbox.getVersion();
@@ -39,6 +40,7 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
      * @param host VirtualBox host
      * @return list of virtual machines installed on specified host
      */
+    @Override
     public synchronized List<VirtualBoxMachine> getMachines(VirtualBoxCloud host, VirtualBoxLogger log) {
         List<VirtualBoxMachine> result = new ArrayList<VirtualBoxMachine>();
         for (IMachine machine : vbox.getMachines()) {
@@ -55,6 +57,7 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
      * @param log
      * @return result code
      */
+    @Override
     public synchronized long startVm(VirtualBoxMachine vbMachine, String type, VirtualBoxLogger log) {
         IMachine machine = vbox.findMachine(vbMachine.getName());
         if (null == machine) {
@@ -68,11 +71,13 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
         IProgress progress;
 
         // wait for transient states to finish
-        while (state.value() >= MachineState.FirstTransient.value() && state.value() <= MachineState.LastTransient.value()) {
+        while (state.value() >= MachineState.FirstTransient.value()
+                && state.value() <= MachineState.LastTransient.value()) {
             log.logInfo("node " + vbMachine.getName() + " in state " + state.toString());
             try {
                 wait(1000);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
             state = machine.getState();
         }
 
@@ -145,6 +150,7 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
      * @param log
      * @return result code
      */
+    @Override
     public synchronized long stopVm(VirtualBoxMachine vbMachine, String stopMode, VirtualBoxLogger log) {
         IMachine machine = vbox.findMachine(vbMachine.getName());
         if (null == machine) {
@@ -158,18 +164,19 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
         IProgress progress;
 
         // wait for transient states to finish
-        while (state.value() >= MachineState.FirstTransient.value() && state.value() <= MachineState.LastTransient.value()) {
+        while (state.value() >= MachineState.FirstTransient.value()
+                && state.value() <= MachineState.LastTransient.value()) {
             log.logInfo("node " + vbMachine.getName() + " in state " + state.toString());
             try {
                 wait(1000);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
             state = machine.getState();
         }
 
         log.logInfo("stopping node " + vbMachine.getName() + " from state " + state.toString());
 
-        if (MachineState.Aborted == state || MachineState.PoweredOff == state
-                || MachineState.Saved == state) {
+        if (MachineState.Aborted == state || MachineState.PoweredOff == state || MachineState.Saved == state) {
             log.logInfo("node " + vbMachine.getName() + " stopped");
             return 0;
         }
@@ -203,18 +210,6 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
         return result;
     }
 
-    /**
-     * MAC Address of specified virtual machine.
-     *
-     * @param vbMachine virtual machine
-     * @return MAC Address of specified virtual machine
-     */
-    public synchronized String getMacAddress(VirtualBoxMachine vbMachine, VirtualBoxLogger log) {
-        IMachine machine = vbox.findMachine(vbMachine.getName());
-        String macAddress = machine.getNetworkAdapter(0L).getMACAddress();
-        return macAddress;
-    }
-
     private String getVBProcessError(IProgress progress) {
         if (0 == progress.getResultCode()) {
             return "";
@@ -241,14 +236,16 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
             while (isTransientState(machine.getSessionState())) {
                 try {
                     Thread.sleep(500);
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
             }
         }
 
         while (isTransientState(s.getState())) {
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
         }
 
         return s;
@@ -258,17 +255,20 @@ public final class VirtualBoxControlV61 implements VirtualBoxControl {
         while (isTransientState(machine.getSessionState()) || isTransientState(s.getState())) {
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
         }
 
         try {
             s.unlockMachine();
-        } catch (VBoxException e) {}
+        } catch (VBoxException e) {
+        }
 
         while (isTransientState(machine.getSessionState()) || isTransientState(s.getState())) {
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
         }
     }
 }
