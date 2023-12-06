@@ -23,7 +23,7 @@ import org.kohsuke.stapler.QueryParameter;
 public class VirtualBoxCloud extends Cloud {
     private static final Logger LOG = Logger.getLogger(VirtualBoxCloud.class.getName());
 
-    private final String url;
+    private final String provisurl;
     private final String username;
     private final Secret password;
 
@@ -33,9 +33,9 @@ public class VirtualBoxCloud extends Cloud {
     private transient List<VirtualBoxMachine> virtualBoxMachines = null;
 
     @DataBoundConstructor
-    public VirtualBoxCloud(String displayName, String url, String username, Secret password) {
+    public VirtualBoxCloud(String displayName, String provisurl, String username, Secret password) {
         super(displayName);
-        this.url = url;
+        this.provisurl = provisurl;
         this.username = username;
         this.password = password;
     }
@@ -80,11 +80,11 @@ public class VirtualBoxCloud extends Cloud {
          */
         @SuppressWarnings({"UnusedDeclaration", "JavaDoc"})
         public FormValidation doTestConnection(
-                @QueryParameter String url, @QueryParameter String username, @QueryParameter Secret password) {
-            LOG.log(Level.INFO, "Testing connection to {0} with username {1}", new Object[] {url, username});
+                @QueryParameter String provisurl, @QueryParameter String username, @QueryParameter Secret password) {
+            LOG.log(Level.INFO, "Testing connection to {0} with username {1}", new Object[] {provisurl, username});
             try {
                 VirtualBoxUtils.getMachines(
-                        new VirtualBoxCloud("testConnection", url, username, password),
+                        new VirtualBoxCloud("testConnection", provisurl, username, password),
                         new VirtualBoxSystemLog(LOG, "[VirtualBox] "));
                 return FormValidation.ok(Messages.VirtualBoxHost_success());
             } catch (Throwable e) {
@@ -93,10 +93,8 @@ public class VirtualBoxCloud extends Cloud {
         }
     }
 
-    @NonNull
-    @Override
-    public String getUrl() {
-        return url;
+    public String getProvisurl() {
+        return provisurl;
     }
 
     public String getUsername() {
@@ -109,8 +107,8 @@ public class VirtualBoxCloud extends Cloud {
 
     @Override
     public String toString() {
-        return "VirtualBoxCloud{" + "url='"
-                + url + '\'' + ", username='"
+        return "VirtualBoxCloud{" + "provisurl='"
+                + provisurl + '\'' + ", username='"
                 + username + '\'' + ", name='"
                 + name + '\'' + '}';
     }

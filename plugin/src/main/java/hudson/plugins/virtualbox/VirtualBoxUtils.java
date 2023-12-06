@@ -78,7 +78,7 @@ public final class VirtualBoxUtils {
             if (vboxControl.isConnected()) {
                 return vboxControl;
             }
-            log.logInfo("Lost connection to " + host.getUrl() + ", reconnecting");
+            log.logInfo("Lost connection to " + host.getProvisurl() + ", reconnecting");
             vboxControls.remove(host.toString()); // force a reconnect
         }
         vboxControl = createVboxControl(host, log);
@@ -93,50 +93,50 @@ public final class VirtualBoxUtils {
         String version = GetVboxVersion(host, log);
 
         if (version.startsWith("7.0")) {
-            vboxControl = new VirtualBoxControlV70(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV70(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("6.1")) {
-            vboxControl = new VirtualBoxControlV61(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV61(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("6.0")) {
-            vboxControl = new VirtualBoxControlV60(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV60(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("5.2")) {
-            vboxControl = new VirtualBoxControlV52(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV52(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("5.1")) {
-            vboxControl = new VirtualBoxControlV51(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV51(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("5.0")) {
-            vboxControl = new VirtualBoxControlV50(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV50(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("4.3")) {
-            vboxControl = new VirtualBoxControlV43(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV43(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("4.2")) {
-            vboxControl = new VirtualBoxControlV42(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV42(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("4.1")) {
-            vboxControl = new VirtualBoxControlV41(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV41(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("4.0")) {
-            vboxControl = new VirtualBoxControlV40(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV40(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else if (version.startsWith("3.")) {
-            vboxControl = new VirtualBoxControlV31(host.getUrl(), host.getUsername(), host.getPassword());
+            vboxControl = new VirtualBoxControlV31(host.getProvisurl(), host.getUsername(), host.getPassword());
         } else {
             log.logError("VirtualBox version " + version + " not supported.");
             throw new UnsupportedOperationException("VirtualBox version " + version + " not supported.");
         }
 
-        log.logInfo("Connected to VirtualBox version " + version + " on host " + host.getUrl());
+        log.logInfo("Connected to VirtualBox version " + version + " on host " + host.getProvisurl());
         return vboxControl;
     }
 
     private static String GetVboxVersion(VirtualBoxCloud host, VirtualBoxLogger log) {
-        log.logInfo("Trying to connect to " + host.getUrl() + ", user " + host.getUsername());
+        log.logInfo("Trying to connect to " + host.getProvisurl() + ", user " + host.getUsername());
         String version = "";
         try {
             org.virtualbox_7_0.VirtualBoxManager manager = org.virtualbox_7_0.VirtualBoxManager.createInstance(null);
             manager.connect(
-                    host.getUrl(), host.getUsername(), host.getPassword().getPlainText());
+                    host.getProvisurl(), host.getUsername(), host.getPassword().getPlainText());
             version = manager.getVBox().getVersion();
             manager.disconnect();
         } catch (Exception e) {
             try {
                 // fallback to old method
                 com.sun.xml.ws.commons.virtualbox_3_1.IWebsessionManager manager =
-                        new com.sun.xml.ws.commons.virtualbox_3_1.IWebsessionManager(host.getUrl());
+                        new com.sun.xml.ws.commons.virtualbox_3_1.IWebsessionManager(host.getProvisurl());
                 com.sun.xml.ws.commons.virtualbox_3_1.IVirtualBox vbox =
                         manager.logon(host.getUsername(), host.getPassword().getPlainText());
                 version = vbox.getVersion();
